@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Inscription | Z-ERP - Tableau de bord administrateur réactif Bootstrap 5</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="Z-ERP - Optimisez la gestion de vos ressources et améliorez l'efficacité de votre entreprise avec notre tableau de bord administrateur réactif." name="description" />
+    <meta content="Coderthemes" name="author" />
+
+    <!-- Icône de l'application -->
+    <link rel="shortcut icon" href="assets/images/favicon.ico">
+
+    <!-- CSS du fournisseur -->
+    <link href="assets/css/vendor.min.css" rel="stylesheet" type="text/css" />
+
+    <!-- CSS de l'application -->
+    <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" id="app-style" />
+
+    <!-- CSS des icônes -->
+    <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+
+    <!-- Configuration du thème -->
+    <script src="assets/js/config.js"></script>
+</head>
+
+<body class="authentication-bg bg-primary authentication-bg-pattern d-flex align-items-center pb-0 vh-100">
+
+    <?php
+    // Inclure le fichier de connexion à la base de données
+    require_once 'config/db_connect.php';
+
+    // Fonction pour nettoyer et valider les données d'entrée
+    function test_input($data) {
+        $data = trim($data);
+        $data = stripslashes($data);
+        $data = htmlspecialchars($data);
+        return $data;
+    }
+
+    // Vérifier si le formulaire a été soumis
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        $username = test_input($_POST['username']);
+        $email = test_input($_POST['emailaddress']);
+        $password = test_input($_POST['password']);
+
+        // Valider les champs requis
+        if (empty($username) || empty($email) || empty($password)) {
+            $error = "Tous les champs sont requis.";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = "Adresse e-mail invalide.";
+        } else {
+            // Hacher le mot de passe
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+            // Insérer les données de l'utilisateur dans la base de données
+            try {
+                $stmt = $pdo->prepare("INSERT INTO users (name, email, password, user_category, phone_number) VALUES (?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $username,
+                    $email,
+                    $hashed_password,
+                    'user', // Définir une catégorie par défaut pour les nouveaux utilisateurs
+                    '' // Numéro de téléphone par défaut (peut être ajouté plus tard)
+                ]);
+
+                $success = "Inscription réussie. Vous pouvez maintenant vous connecter.";
+            } catch (PDOException $e) {
+                $error = "Erreur lors de l'inscription: " . $e->getMessage();
+            }
+        }
+    }
+    ?>
+
+    <div class="account-pages w-100 mt-5 mb-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6 col-xl-5">
+                    <div class="card mb-0">
+                        <div class="card-body p-4">
+
+                            <div class="account-box">
+                                <div class="account-logo-box">
+                                    <div class="text-center">
+                                        <h1>Z-ERP</h1>
+                                    </div>
+                                    <h5 class="text-uppercase mb-1 mt-4 fw-semibold">S'inscrire</h5>
+                                    <p class="mb-0">Accédez à notre panneau d'administration</p>
+                                </div>
+
+                                <div class="account-content mt-4">
+                                    <?php if (isset($error)) : ?>
+                                        <div class="alert alert-danger">
+                                            <?= $error ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (isset($success)) : ?>
+                                        <div class="alert alert-success">
+                                            <?= $success ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <form class="form-horizontal" action="" method="POST">
+
+                                        <div class="form-group row">
+                                            <div class="col-12">
+                                                <label for="username">Nom Complet</label>
+                                                <input class="form-control" type="text" id="username" name="username" required="" placeholder="Entrez votre Nom complet">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <div class="col-12">
+                                                <label for="emailaddress">Adresse e-mail</label>
+                                                <input class="form-control" type="email" id="emailaddress" name="emailaddress" required="" placeholder="Entrez votre email">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <div class="col-12">
+                                                <a href="auth-recoverpw.html" class="text-muted float-end"><small>Mot de passe oublié ?</small></a>
+                                                <label for="password">Mot de passe</label>
+                                                <input class="form-control" type="password" required="" id="password" name="password" placeholder="Entrez votre mot de passe">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <div class="col-12">
+                                                <div class="checkbox checkbox-success">
+                                                    <input id="remember" type="checkbox" required="">
+                                                    <label for="remember">
+                                                        J'accepte <a href="#">les Termes et Conditions</a>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row text-center mt-2">
+                                            <div class="col-12">
+                                                <button class="btn btn-md btn-block btn-primary waves-effect waves-light w-100" type="submit">S'inscrire</button>
+                                            </div>
+                                        </div>
+
+                                    </form>
+
+                                    <div class="row mt-4 pt-2">
+                                        <div class="col-sm-12 text-center">
+                                            <p class="text-muted">Vous avez déjà un compte ? <a href="page-login.html" class="text-dark ms-1"><b>Se Connecter</b></a></p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- end card-body -->
+                </div>
+                <!-- end card -->
+            </div>
+            <!-- end row -->
+        </div>
+        <!-- end container -->
+    </div>
+    <!-- end page -->
+
+    <!-- JS du fournisseur -->
+    <script src="assets/js/vendor.min.js"></script>
+
+    <!-- JS de l'application -->
+    <script src="assets/js/app.js"></script>
+
+</body>
+
+</html>
